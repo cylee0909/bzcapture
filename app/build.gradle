@@ -1,19 +1,32 @@
 apply plugin: 'com.android.application'
 
 android {
-  compileSdkVersion 21
-  buildToolsVersion "23.0.3"
+  compileSdkVersion 25
+  buildToolsVersion "25.0.1"
 
   defaultConfig {
-    applicationId "com.branch.www.screencapture"
+    applicationId "com.cylee.capture"
     minSdkVersion 21
     targetSdkVersion 21
     versionCode 1
     versionName "1.0"
   }
+
+  signingConfigs {
+    release {
+      storeFile file("cylee.keystore")
+      storePassword "140547"
+      keyAlias "cylee"
+      keyPassword "140547"
+    }
+  }
+
   buildTypes {
     release {
-      minifyEnabled false
+      minifyEnabled true
+      shrinkResources true
+      zipAlignEnabled true
+      signingConfig signingConfigs.release
       proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
     }
   }
