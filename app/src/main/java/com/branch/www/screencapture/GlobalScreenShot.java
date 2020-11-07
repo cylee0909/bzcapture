@@ -28,6 +28,7 @@ import android.graphics.PixelFormat;
 import android.graphics.PointF;
 import android.media.MediaActionSound;
 import android.net.Uri;
+import android.os.Build;
 import android.util.DisplayMetrics;
 import android.view.Display;
 import android.view.LayoutInflater;
@@ -135,6 +136,12 @@ class GlobalScreenshot {
             | WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN
             | WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED,
         PixelFormat.TRANSLUCENT);
+
+    if (Build.VERSION.SDK_INT > Build.VERSION_CODES.M) {
+      mWindowLayoutParams.type = WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY;
+    } else {
+      mWindowLayoutParams.type = WindowManager.LayoutParams.TYPE_SYSTEM_ALERT;
+    }
     mWindowLayoutParams.setTitle("ScreenshotAnimation");
     mWindowManager = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
 
@@ -194,6 +201,7 @@ class GlobalScreenshot {
       mScreenshotAnimation.removeAllListeners();
     }
 
+    // Caused by: android.view.WindowManager$BadTokenException: Unable to add window android.view.ViewRootImpl$W@3b46c1f -- permission denied for window type 2003
     mWindowManager.addView(mScreenshotLayout, mWindowLayoutParams);
     ValueAnimator screenshotDropInAnim = createScreenshotDropInAnimation();
     ValueAnimator screenshotFadeOutAnim = createScreenshotDropOutAnimation(w, h,

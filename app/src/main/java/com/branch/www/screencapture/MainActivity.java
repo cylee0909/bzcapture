@@ -27,12 +27,6 @@ public class MainActivity extends FragmentActivity {
 
 
     public void requestCapturePermission() {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
-            Toast.makeText(this, "手机系统版本太低，暂不支持", Toast.LENGTH_LONG).show();
-            //5.0 之后才允许使用屏幕截图
-            return;
-        }
-
         MediaProjectionManager mediaProjectionManager = (MediaProjectionManager)
                 getSystemService(Context.MEDIA_PROJECTION_SERVICE);
         startActivityForResult(
@@ -49,7 +43,9 @@ public class MainActivity extends FragmentActivity {
                     FloatWindowsService.setResultData(data);
                     Intent intent = new Intent(getApplicationContext(), FloatWindowsService.class);
                     intent.putExtra("action", 100);
-                    startService(intent);
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                        startForegroundService(intent);
+                    }
                     finish();
                 } else {
                     Toast.makeText(this, "获取截图权限失败，程序将无法正常运行！！", Toast.LENGTH_LONG).show();

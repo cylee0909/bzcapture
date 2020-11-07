@@ -1,8 +1,11 @@
 package com.branch.www.screencapture;
 
+import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.Notification;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Context;
@@ -22,8 +25,6 @@ import android.os.Build;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Looper;
-import android.support.v4.app.NotificationCompat;
-import android.support.v4.os.AsyncTaskCompat;
 import android.support.v4.util.Pair;
 import android.util.DisplayMetrics;
 import android.util.Log;
@@ -97,10 +98,15 @@ public class FloatWindowsService extends Service {
         mScreenWidth = metrics.widthPixels;
         mScreenHeight = metrics.heightPixels;
 
-        mLayoutParams.type = WindowManager.LayoutParams.TYPE_TOAST;
+//        mLayoutParams.type = WindowManager.LayoutParams.TYPE_TOAST;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            mLayoutParams.type =WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY;
+        } else {
+            mLayoutParams.type =WindowManager.LayoutParams.TYPE_SYSTEM_ALERT;
+        }
         mLayoutParams.format = PixelFormat.RGBA_8888;
         // 设置Window flag
-        mLayoutParams.flags = WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL
+        mLayoutParams.flags = WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON
                 | WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE;
         mLayoutParams.gravity = Gravity.LEFT | Gravity.TOP;
         mLayoutParams.x = mScreenWidth;
@@ -193,10 +199,9 @@ public class FloatWindowsService extends Service {
     }
 
 
+    @SuppressLint("WrongConstant")
     private void createImageReader() {
-
         mImageReader = ImageReader.newInstance(mScreenWidth, mScreenHeight, PixelFormat.RGBA_8888, 1);
-
     }
 
     public void startVirtual() {
@@ -237,7 +242,8 @@ public class FloatWindowsService extends Service {
                     startScreenShot();
                 } else {
                     SaveTask mSaveTask = new SaveTask();
-                    AsyncTaskCompat.executeParallel(mSaveTask, image);
+                    mSaveTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, image);
+//                    AsyncTask.execute(mSaveTask, image);
                 }
             }
         }, delay ? 1000 : 0);
@@ -274,6 +280,7 @@ public class FloatWindowsService extends Service {
                 Util.breakUpBmp(bitmap);
                 try {
                     fileImage = new File(FileUtil.getScreenShotsName(getApplicationContext()));
+                    Log.d("fubang", "doInBackground: " + fileImage.getAbsolutePath());
                     if (!fileImage.exists()) {
                         fileImage.createNewFile();
                     }
@@ -322,6 +329,14 @@ public class FloatWindowsService extends Service {
         if (action == 100) {
             createFloatView();
             createImageReader();
+
+            NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+            //创建NotificationChannel
+            if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                NotificationChannel channel = new NotificationChannel("channelId", "channelName", NotificationManager.IMPORTANCE_HIGH);
+                notificationManager.createNotificationChannel(channel);
+            }
+
             PendingIntent pendingIntent = PendingIntent.getService(this, 101,
                     new Intent(this, FloatWindowsService.class), 0);
             Notification.Builder builder = new Notification.Builder(this);
@@ -332,6 +347,9 @@ public class FloatWindowsService extends Service {
             builder.setSmallIcon(R.drawable.l_logo);
             builder.setContentIntent(pendingIntent);
             builder.setOngoing(true);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                builder.setChannelId("channelId");
+            }
             Notification notification = builder.build();
             startForeground(101, notification);
         } else {

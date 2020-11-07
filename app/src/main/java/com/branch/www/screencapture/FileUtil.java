@@ -18,15 +18,17 @@ public class FileUtil {
 
     public static String getAppPath(Context context) {
 
-        if (Environment.MEDIA_MOUNTED.equals(Environment.getExternalStorageState())) {
+//        if (Environment.MEDIA_MOUNTED.equals(Environment.getExternalStorageState())) {
+//
+//
+//            return Environment.getExternalStorageDirectory().toString();
+//
+//        } else {
+//
+//            return context.getFilesDir().toString();
+//        }
 
-
-            return Environment.getExternalStorageDirectory().toString();
-
-        } else {
-
-            return context.getFilesDir().toString();
-        }
+        return context.getExternalFilesDir(Environment.DIRECTORY_PICTURES).getAbsolutePath();
 
     }
 
@@ -36,7 +38,7 @@ public class FileUtil {
         StringBuffer stringBuffer = new StringBuffer(getAppPath(context));
         stringBuffer.append(File.separator);
 
-        stringBuffer.append(SCREENCAPTURE_PATH);
+//        stringBuffer.append(SCREENCAPTURE_PATH);
 
         File file = new File(stringBuffer.toString());
 
@@ -57,7 +59,6 @@ public class FileUtil {
         stringBuffer.append(date);
         stringBuffer.append(".png");
         return stringBuffer.toString();
-
     }
 
 }
